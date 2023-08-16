@@ -21,3 +21,7 @@ Implemented Features:
 - Reset time to original time (`clr`)
 - Update time to current time (`now`)
 - Keeps track of logged commands (use up and down arrow to navigate)
+
+GitHub Page:
+
+https://jinkang-0.github.io/DateCalculator/
