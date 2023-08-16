@@ -3,6 +3,7 @@
 Do math operations on dates using text inputs.
 
 Planned features:
+- Command autofill
 - Addition and subtraction on
     - seconds
     - minutes
@@ -11,7 +12,3 @@ Planned features:
     - weeks
     - months
     - years
-    - decades
-    - centuries
-    - millenniums
-- Command autofill
