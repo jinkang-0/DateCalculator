@@ -56,11 +56,18 @@ cl.addEventListener('keydown', (e) => {
 function handleCommand(args) {
     const cmd = args.shift();
 
-    if (['add', 'plus', 'append', '+'].includes(cmd))
+    if (!isNaN(cmd)) {
+        const n = Number(cmd);
+        if (n >= 0)
+            handleAddCommand([n, ...args]);
+        else
+            handleSubCommand([-n, ...args]);
+    }
+    else if (['add', 'plus', 'append', '+'].includes(cmd))
         handleAddCommand(args);
     else if (['sub', 'subtract', 'minus', 'remove', '-'].includes(cmd))
         handleSubCommand(args);
-    else if (['clear', 'reset'].includes(cmd))
+    else if (['clear', 'clr', 'reset', 'cls', 'original', 'back'].includes(cmd))
         handleClear();
     else if (['now', 'today', 'current', 'present'].includes(cmd))
         handleToday();
