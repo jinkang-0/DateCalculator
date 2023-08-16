@@ -14,6 +14,10 @@ Implemented Features:
     - `diff [month] [day] [year]`
     - `diff [month] [day] [year] [hh:mm(:ss)]`
     - `diff [month] [day] [year] [hh:mm(:ss)][am|pm]`
+- Setting anchor date
+    - `set [month] [day] [year]`
+    - `set [month] [day] [year] [hh:mm(:ss)]`
+    - `set [month] [day] [year] [hh:mm(:ss)][am|pm]`
 - Reset time to original time (`clr`)
 - Update time to current time (`now`)
-- Keeps track of logged commands (use up and down arrow to switch)
+- Keeps track of logged commands (use up and down arrow to navigate)

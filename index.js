@@ -35,17 +35,20 @@ const validUnits = Object.keys(unitsTable);
 // settings
 const MAX_LOG_TRACKER = 100;
 
-// main
+// DOM elements
 const textContainer = document.querySelector('article');
 const display = document.getElementById('display');
 const cl = document.getElementById('commandline');
 const errormsg = document.getElementById('error');
 const flairmsg = document.getElementById('flair');
+
+// vars
 const time = new Date();
 const originalTime = time.getTime();
 const commandLog = [];
 var commandIndex = -1;
 
+// display current time
 insertText(parseTimeString(time), 'large');
 
 
@@ -92,9 +95,11 @@ function handleCommand(args, chaining=false) {
         handleAddCommand(args);
     else if (['sub', 'subtract', 'minus', 'remove', '-'].includes(cmd))
         handleSubCommand(args);
-    else if (['compare', 'diff', 'difference', 'differentiate'].includes(cmd))
+    else if (['compare', 'diff', '='].includes(cmd))
         handleCompareCommand(args);
-    else if (['clear', 'clr', 'reset', 'cls', 'original', 'back'].includes(cmd))
+    else if (['set', ':='].includes(cmd))
+        handleSetTime(args);
+    else if (['clear', 'clr', 'reset', 'cls', 'c'].includes(cmd))
         handleClear();
     else if (['now', 'today', 'current', 'present'].includes(cmd))
         handleToday();
@@ -162,25 +167,27 @@ function handleToday() {
 }
 
 function handleCompareCommand(args) {
-    console.log("Handling date compare...");
-
+    // check argument case
     const dateCase = verifyDateArgs(args);
     if (dateCase == 0) {
         showError("Invalid arguments");
         return;
     }
 
+    // get date
     const date = extractDateArgs(args, dateCase);
     if (isNaN(date.valueOf())) {
         showError("Invalid date");
         return;
     }
 
+    // preliminary assessment
     if (time >= date)
         insertText(`is ahead of ${parseTimeString(date)}`, 'positive')
     else
         insertText(`is behind of ${parseTimeString(date)}`, 'negative')
 
+    // get time differences
     const dyear = Math.abs(date.getFullYear() - time.getFullYear());
     const dmonth = Math.abs(date.getMonth() - time.getMonth());
     const dday = Math.abs(date.getDate() - time.getDate());
@@ -188,11 +195,11 @@ function handleCompareCommand(args) {
     const dmin = Math.abs(date.getMinutes() - time.getMinutes());
     const dsec = Math.abs(date.getSeconds() - time.getSeconds());
 
+    // return result text
     const plural = (num) => (num != 1) ? 's' : '';
-
     insertText(`by ${dyear} year${plural(dyear)}, ${dmonth} month${plural(dmonth)}, ${dday} day${plural(dday)}, ${dhour} hour${plural(dhour)}, ${dmin} minute${plural(dmin)}, and ${dsec} second${plural(dsec)}`, 'result');
 
-    // parse other command chain or show result
+    // parse other command chain
     const argsUsed = (dateCase >= 3)? dateCase + 1 : dateCase + 2;
     const newArgs = args.slice(argsUsed);
     if (newArgs.length > 0) {
@@ -202,6 +209,38 @@ function handleCompareCommand(args) {
         textContainer.scrollTop = textContainer.scrollHeight;
     }
 }
+
+
+function handleSetTime(args) {
+    // check argument case
+    const dateCase = verifyDateArgs(args);
+    if (dateCase == 0) {
+        showError("Invalid arguments");
+        return;
+    }
+
+    // get date
+    const date = extractDateArgs(args, dateCase);
+    if (isNaN(date.valueOf())) {
+        showError("Invalid date");
+        return;
+    }
+
+    display.innerHTML = "";
+    time.setTime(date.getTime());
+    insertText(parseTimeString(time), 'large');
+
+    // parse other command chain
+    const argsUsed = (dateCase >= 3)? dateCase + 1 : dateCase + 2;
+    const newArgs = args.slice(argsUsed);
+    if (newArgs.length > 0) {
+        handleCommand(newArgs, true);
+    } else {
+        clearTempMsg();
+        showFlair("Updated time.");
+    }
+}
+
 
 
 
@@ -239,6 +278,8 @@ function updateTime(unit, amt) {
         time.setMinutes(time.getMinutes() + amt);
     else if (unit == 'hour')
         time.setHours(time.getHours() + amt);
+    else if (unit == 'day')
+        time.setDate(time.getDate() + amt);
     else if (unit == 'month')
         time.setMonth(time.getMonth() + amt);
     else if (unit == 'year')
@@ -288,7 +329,7 @@ function extractDateArgs(args, dateCase) {
 
     // meridiem
     if (dateCase >= 3) {
-        meridiem = (dateCase == 3)? args[3].substring(args.length-2) : args[4];
+        meridiem = (dateCase == 3)? args[3].substring(args[3].length-2) : args[4];
         meridiem = meridiem.toLowerCase();
     } else if (hour >= 12) {
         meridiem = 'pm';
