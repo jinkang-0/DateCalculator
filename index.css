@@ -15,15 +15,37 @@ body {
     color: white;
 }
 
+::-webkit-scrollbar {
+    width: 1rem;
+}
+
+::-webkit-scrollbar-track {
+    background: #41434a;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #585a63;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #5e5f69;
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: #51535b;
+}
+
 
 /* elements */
 
 main {
     width: 100%;
     height: 100%;
+    max-height: 100%;
     padding: 4rem;
     display: flex;
     flex-direction: column;
+    gap: 1rem;
 }
 
 input {
@@ -47,6 +69,11 @@ input:focus {
 
 
 /* display elements */
+article {
+    height: auto;
+    overflow-y: auto;
+}
+
 #display .large {
     font-size: 1.15rem;
     margin-bottom: .2rem;

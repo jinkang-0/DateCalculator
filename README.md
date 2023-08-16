@@ -11,7 +11,6 @@ Implemented Features:
     - `+[amount] [unit]`
     - `-[amount] [unit]`
     - Supported units: second, minute, hours, days, weeks, months, years (and their abbreviation)
-- Clear
-    - Reset to the original time
-- Now
-    - Set time to current time
+- Reset time to original time (`clr`)
+- Update time to current time (`now`)
+- Keeps track of logged commands (use up and down arrow to switch)

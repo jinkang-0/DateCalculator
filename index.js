@@ -33,13 +33,19 @@ const unitsTable = {
 }
 const validUnits = Object.keys(unitsTable);
 
+// settings
+const MAX_LOG_TRACKER = 100;
+
 // main
+const textContainer = document.querySelector('article');
 const display = document.getElementById('display');
 const cl = document.getElementById('commandline');
 const errormsg = document.getElementById('error');
 const flairmsg = document.getElementById('flair');
 const time = new Date();
 const originalTime = time.getTime();
+const commandLog = [];
+var commandIndex = -1;
 
 insertText(parseTimeString(time), 'large');
 
@@ -48,7 +54,32 @@ insertText(parseTimeString(time), 'large');
 cl.addEventListener('keydown', (e) => {
     if (e.key == 'Enter') {
         handleCommand(e.target.value.toLowerCase().split(' '));
+        
+        // log command
+        commandLog[0] = e.target.value;
+        commandLog.unshift("");
+        if (commandLog.length > MAX_LOG_TRACKER)
+            commandLog.pop();
+
+        // clear value
         cl.value = "";
+    } else if (e.key == 'ArrowUp') {
+        if (commandIndex == 0)
+            commandLog[0] = cl.value;
+        if (commandIndex < commandLog.length - 1) {
+            commandIndex++;
+            cl.value = commandLog[commandIndex];
+            moveCursorToEnd();
+        }
+    } else if (e.key == 'ArrowDown') {
+        if (commandIndex > 0) {
+            commandIndex--;
+            cl.value = commandLog[commandIndex];
+            moveCursorToEnd();
+        }
+    } else {
+        commandIndex = 0;
+        commandLog[0] = cl.value;
     }
 });
 
@@ -56,13 +87,8 @@ cl.addEventListener('keydown', (e) => {
 function handleCommand(args) {
     const cmd = args.shift();
 
-    if (!isNaN(cmd)) {
-        const n = Number(cmd);
-        if (n >= 0)
-            handleAddCommand([n, ...args]);
-        else
-            handleSubCommand([-n, ...args]);
-    }
+    if (cmd.startsWith('+') || cmd.startsWith('-'))
+        handleAddCommand([cmd, ...args]);
     else if (['add', 'plus', 'append', '+'].includes(cmd))
         handleAddCommand(args);
     else if (['sub', 'subtract', 'minus', 'remove', '-'].includes(cmd))
@@ -85,7 +111,10 @@ function handleAddCommand(args) {
     // perform operation
     const amt = Number(args[0]);
     const unit = unitsTable[args[1]];
-    insertText(`+${amt} ${unit}${(amt > 1)? 's' : ''}`, 'positive');
+    if (amt < 0)
+        insertText(`-${-amt} ${unit}${(amt < -1)? 's' : ''}`, 'negative');
+    else
+        insertText(`+${amt} ${unit}${(amt > 1)? 's' : ''}`, 'positive');
     updateTime(unit, amt);
 
     // parse other command chain or show result
@@ -95,6 +124,7 @@ function handleAddCommand(args) {
     } else {
         insertText(parseTimeString(time), 'result');
         clearTempMsg();
+        textContainer.scrollTop = textContainer.scrollHeight;
     }
 }
 
@@ -103,20 +133,8 @@ function handleSubCommand(args) {
     if (!verifyAddOrSubtract(args))
         return;
 
-    // perform operation
-    const amt = -Number(args[0]);
-    const unit = unitsTable[args[1]];
-    insertText(`-${-amt} ${unit}${(amt < -1)? 's' : ''}`, 'negative');
-    updateTime(unit, amt);
-
-    // parse other command chain or show result
-    const newArgs = args.slice(2);
-    if (newArgs.length > 0) {
-        handleCommand(newArgs);
-    } else {
-        insertText(parseTimeString(time), 'result');
-        clearTempMsg();
-    }
+    const n = -Number(args[0]);
+    handleAddCommand([n, ...args.slice(1)]);
 }
 
 function handleClear() {
@@ -125,6 +143,7 @@ function handleClear() {
     time.setTime(originalTime);
     insertText(parseTimeString(time), 'large');
     showFlair('Reset to original time.');
+    textContainer.scrollTop = textContainer.scrollHeight;
 }
 
 function handleToday() {
@@ -133,6 +152,7 @@ function handleToday() {
     time.setTime(Date.now());
     insertText(parseTimeString(time), 'large');
     showFlair('Updated time to the present.');
+    textContainer.scrollTop = textContainer.scrollHeight;
 }
 
 
@@ -194,4 +214,15 @@ function parseTimeString(dateobj) {
     const minutes = dateobj.getMinutes();
     const meridiem = (hours >= 12) ? 'PM' : 'AM';
     return `${weekday}, ${month} ${monthday}, ${year}, ${(hours > 12)? hours - 12 : hours}:${minutes.toString().padStart(2, '0')} ${meridiem}`;
+}
+
+function moveCursorToEnd() {
+    setTimeout(() => {
+        cl.selectionStart = cl.selectionEnd = cl.value.length;
+        cl.focus();
+    }, 0);
+}
+
+function trimComma(str) {
+    return str.replaceAll(/,+$/g, '');
 }
