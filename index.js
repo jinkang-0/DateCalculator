@@ -1,8 +1,7 @@
 // helpful constants
 const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const validWeekdays = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-const validMonths = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec', 'january', 'february', 'march', 'april', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+const validMonths = ['jan', 'january', 'feb', 'february', 'mar', 'march', 'apr', 'april', 'may', 'may', 'jun', 'june', 'jul', 'july', 'aug', 'august', 'sep', 'september', 'oct', 'october', 'nov', 'november', 'dec', 'december'];
 const unitsTable = {
     "second": "second",
     "seconds": "second",
@@ -84,19 +83,25 @@ cl.addEventListener('keydown', (e) => {
 });
 
 
-function handleCommand(args) {
+function handleCommand(args, chaining=false) {
     const cmd = args.shift();
 
-    if (cmd.startsWith('+') || cmd.startsWith('-'))
+    if (!isNaN(cmd) && (cmd.startsWith('+') || cmd.startsWith('-')))
         handleAddCommand([cmd, ...args]);
     else if (['add', 'plus', 'append', '+'].includes(cmd))
         handleAddCommand(args);
     else if (['sub', 'subtract', 'minus', 'remove', '-'].includes(cmd))
         handleSubCommand(args);
+    else if (['compare', 'diff', 'difference', 'differentiate'].includes(cmd))
+        handleCompareCommand(args);
     else if (['clear', 'clr', 'reset', 'cls', 'original', 'back'].includes(cmd))
         handleClear();
     else if (['now', 'today', 'current', 'present'].includes(cmd))
         handleToday();
+    else if (chaining) {
+        insertText(parseTimeString(time), 'result');
+        hideError();
+    }
     else
         showError("Invalid command", 'negative');
 }
@@ -105,8 +110,10 @@ function handleCommand(args) {
 // commands
 function handleAddCommand(args) {
     // check command validity
-    if (!verifyAddOrSubtract(args))
+    if (!verifyAddOrSubtract(args)) {
+        showError("Invalid arguments");
         return;
+    }
 
     // perform operation
     const amt = Number(args[0]);
@@ -120,7 +127,7 @@ function handleAddCommand(args) {
     // parse other command chain or show result
     const newArgs = args.slice(2);
     if (newArgs.length > 0) {
-        handleCommand(newArgs);
+        handleCommand(newArgs, true);
     } else {
         insertText(parseTimeString(time), 'result');
         clearTempMsg();
@@ -129,12 +136,13 @@ function handleAddCommand(args) {
 }
 
 function handleSubCommand(args) {
-    // check command validity
-    if (!verifyAddOrSubtract(args))
+    if (!verifyAddOrSubtract(args)) {
+        showError("Invalid arguments");
         return;
+    }
 
-    const n = -Number(args[0]);
-    handleAddCommand([n, ...args.slice(1)]);
+    const n = Number(args[0]);
+    handleAddCommand([-n, ...args.slice(1)]);
 }
 
 function handleClear() {
@@ -143,7 +151,6 @@ function handleClear() {
     time.setTime(originalTime);
     insertText(parseTimeString(time), 'large');
     showFlair('Reset to original time.');
-    textContainer.scrollTop = textContainer.scrollHeight;
 }
 
 function handleToday() {
@@ -152,8 +159,50 @@ function handleToday() {
     time.setTime(Date.now());
     insertText(parseTimeString(time), 'large');
     showFlair('Updated time to the present.');
-    textContainer.scrollTop = textContainer.scrollHeight;
 }
+
+function handleCompareCommand(args) {
+    console.log("Handling date compare...");
+
+    const dateCase = verifyDateArgs(args);
+    if (dateCase == 0) {
+        showError("Invalid arguments");
+        return;
+    }
+
+    const date = extractDateArgs(args, dateCase);
+    if (isNaN(date.valueOf())) {
+        showError("Invalid date");
+        return;
+    }
+
+    if (time >= date)
+        insertText(`is ahead of ${parseTimeString(date)}`, 'positive')
+    else
+        insertText(`is behind of ${parseTimeString(date)}`, 'negative')
+
+    const dyear = Math.abs(date.getFullYear() - time.getFullYear());
+    const dmonth = Math.abs(date.getMonth() - time.getMonth());
+    const dday = Math.abs(date.getDate() - time.getDate());
+    const dhour = Math.abs(date.getHours() - time.getHours());
+    const dmin = Math.abs(date.getMinutes() - time.getMinutes());
+    const dsec = Math.abs(date.getSeconds() - time.getSeconds());
+
+    const plural = (num) => (num != 1) ? 's' : '';
+
+    insertText(`by ${dyear} year${plural(dyear)}, ${dmonth} month${plural(dmonth)}, ${dday} day${plural(dday)}, ${dhour} hour${plural(dhour)}, ${dmin} minute${plural(dmin)}, and ${dsec} second${plural(dsec)}`, 'result');
+
+    // parse other command chain or show result
+    const argsUsed = (dateCase >= 3)? dateCase + 1 : dateCase + 2;
+    const newArgs = args.slice(argsUsed);
+    if (newArgs.length > 0) {
+        handleCommand(newArgs, true);
+    } else {
+        clearTempMsg();
+        textContainer.scrollTop = textContainer.scrollHeight;
+    }
+}
+
 
 
 
@@ -170,6 +219,7 @@ function hideFlair() {
 function showFlair(flair) {
     flairmsg.innerHTML = flair;
     flairmsg.classList.add('shown');
+    textContainer.scrollTop = textContainer.scrollHeight;
 }
 
 function hideError() {
@@ -179,6 +229,7 @@ function hideError() {
 function showError(err) {
     errormsg.innerHTML = err;
     errormsg.classList.add('shown');
+    textContainer.scrollTop = textContainer.scrollHeight;
 }
 
 function updateTime(unit, amt) {
@@ -198,6 +249,56 @@ function verifyAddOrSubtract(args) {
     return (args.length >= 2) && (!isNaN(args[0])) && (typeof args[1] == "string") && (validUnits.includes(args[1]));
 }
 
+function verifyDateArgs(args) {
+    const case1 = (args.length >= 3) && (validMonths.includes(args[0].toLowerCase())) && (!isNaN(trimComma(args[1]))) && (!isNaN(trimComma(args[2])));
+    const case2 = case1 && (args.length >= 4) && (args[3].match(/^\d{2}:\d{2}(:\d{2})*$/));
+    const case3 = case1 && (args.length >= 4) && (args[3].match(/^\d{2}(:\d{2})*(:\d{2})*([aA][mM]|[pP][mM])$/));
+    const case4 = case2 && (args.length >= 5) && (["am", "pm"].includes(args[4].toLowerCase()));
+    
+    if (case4)
+        return 4;
+    else if (case3)
+        return 3;
+    else if (case2)
+        return 2;
+    else if (case1)
+        return 1;
+    return 0;
+}
+
+function extractDateArgs(args, dateCase) {
+    if (dateCase < 1 || dateCase > 4)
+        return [];
+
+    var month = args[0].toLowerCase();
+    var day = Number(trimComma(args[1]));
+    var year = Number(trimComma(args[2]));
+    var hour = 0;
+    var minute = 0;
+    var second = 0;
+    var meridiem = 'am';
+
+    // hour, minute, second
+    if (dateCase >= 2) {
+        const nums = trimMeridiem(args[3]).split(':');
+        hour = Number(nums[0]);
+        minute = (nums.length > 1) ? Number(nums[1]) : 0;
+        second = (nums.length > 2) ? Number(nums[2]) : 0;
+    }
+
+    // meridiem
+    if (dateCase >= 3) {
+        meridiem = (dateCase == 3)? args[3].substring(args.length-2) : args[4];
+        meridiem = meridiem.toLowerCase();
+    } else if (hour >= 12) {
+        meridiem = 'pm';
+        hour -= 12;
+    }
+
+    const dateString = `${month} ${day} ${year} ${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:${second.toString().padStart(2, '0')} ${meridiem}`;
+    return new Date(dateString);
+}
+
 function insertText(text, type) {
     const node = document.createElement('p');
     node.innerHTML = text;
@@ -212,8 +313,9 @@ function parseTimeString(dateobj) {
     const year = dateobj.getFullYear();
     const hours = dateobj.getHours();
     const minutes = dateobj.getMinutes();
+    const seconds = dateobj.getSeconds();
     const meridiem = (hours >= 12) ? 'PM' : 'AM';
-    return `${weekday}, ${month} ${monthday}, ${year}, ${(hours > 12)? hours - 12 : hours}:${minutes.toString().padStart(2, '0')} ${meridiem}`;
+    return `${weekday}, ${month} ${monthday}, ${year}, ${(hours > 12)? hours - 12 : hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} ${meridiem}`;
 }
 
 function moveCursorToEnd() {
@@ -225,4 +327,8 @@ function moveCursorToEnd() {
 
 function trimComma(str) {
     return str.replaceAll(/,+$/g, '');
+}
+
+function trimMeridiem(str) {
+    return str.toLowerCase().replaceAll(/(am|pm)$/g, '');
 }
