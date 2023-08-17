@@ -12,12 +12,15 @@ const unitsTable = {
     "minutes": "minute",
     "min": "minute",
     "mins": "minute",
+    "m": "minute",
     "hour": "hour",
     "hours": "hour",
     "hr": "hour",
     "hrs": "hour",
+    "h": "hour",
     "day": "day",
     "days": "day",
+    "d": "day",
     "week": "week",
     "weeks": "week",
     "wk": "week",
@@ -31,6 +34,7 @@ const unitsTable = {
     "yrs": "year"
 }
 const validUnits = Object.keys(unitsTable);
+const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
 // settings
 const MAX_LOG_TRACKER = 100;
@@ -62,6 +66,7 @@ cl.addEventListener('keydown', (e) => {
         commandLog.unshift("");
         if (commandLog.length > MAX_LOG_TRACKER)
             commandLog.pop();
+        commandIndex = 0;
 
         // clear value
         cl.value = "";
@@ -182,21 +187,39 @@ function handleCompareCommand(args) {
     }
 
     // preliminary assessment
-    if (time >= date)
+    const msdiff = time - date;
+    if (msdiff > 0)
         insertText(`is ahead of ${parseTimeString(date)}`, 'positive')
     else
         insertText(`is behind of ${parseTimeString(date)}`, 'negative')
 
-    // get time differences
-    const dyear = Math.abs(date.getFullYear() - time.getFullYear());
-    const dmonth = Math.abs(date.getMonth() - time.getMonth());
-    const dday = Math.abs(date.getDate() - time.getDate());
-    const dhour = Math.abs(date.getHours() - time.getHours());
-    const dmin = Math.abs(date.getMinutes() - time.getMinutes());
-    const dsec = Math.abs(date.getSeconds() - time.getSeconds());
+    // compute constants
+    const larger = (msdiff > 0)? time : date;
+    const smaller = (msdiff > 0)? date : time;
+    const lyear = larger.getFullYear();
+    const syear = smaller.getFullYear();
+    const lmonth = larger.getMonth();
+    const smonth = smaller.getMonth();
+    const lday = larger.getDate();
+    const sday = smaller.getDate();
+    const lhour = larger.getHours();
+    const shour = smaller.getHours();
+    const lmin = larger.getMinutes();
+    const smin = smaller.getMinutes();
+    const lsec = larger.getSeconds();
+    const ssec = smaller.getSeconds();
+
+    // compute difference
+    const dyear = (lmonth < smonth)? lyear - syear - 1 : lyear - syear;
+    const dmonth = (lday < sday)? posMod(lmonth - smonth, 12) - 1 : posMod(lmonth - smonth, 12);
+    const daysMod = daysInMonth[smonth];
+    const dday = (lhour < shour)? posMod(lday - sday, daysMod) - 1 : posMod(lday - sday, daysMod);
+    const dhour = (lmin < smin)? posMod(lhour - shour, 24) - 1 : posMod(lhour - shour, 24);
+    const dmin = (lsec < ssec)? posMod(lmin - smin, 60) - 1 : posMod(lmin - smin, 60);
+    const dsec = posMod(lsec - ssec, 60);
 
     // return result text
-    const plural = (num) => (num != 1) ? 's' : '';
+    const plural = (num) => (Math.abs(num) != 1) ? 's' : '';
     insertText(`by ${dyear} year${plural(dyear)}, ${dmonth} month${plural(dmonth)}, ${dday} day${plural(dday)}, ${dhour} hour${plural(dhour)}, ${dmin} minute${plural(dmin)}, and ${dsec} second${plural(dsec)}`, 'result');
 
     // parse other command chain
@@ -372,4 +395,12 @@ function trimComma(str) {
 
 function trimMeridiem(str) {
     return str.toLowerCase().replaceAll(/(am|pm)$/g, '');
+}
+
+function posMod(n, m) {
+    return ((n % m) + m) % m;
+}
+
+function oppositePolarity(a, b) {
+    return (a < 0 && b >= 0) || (a >= 0 && b < 0);
 }
