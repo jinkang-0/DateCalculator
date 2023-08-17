@@ -106,6 +106,7 @@ article {
 /* help table */
 #help {
     display: none;
+    color: lightgray;
 }
 
 #help.shown {
@@ -124,6 +125,7 @@ code {
 
 #help > p {
     margin-bottom: 1rem;
+    color: #efefef;
 }
 
 
@@ -156,6 +158,6 @@ code {
     position: absolute;
     top: 0;
     right: 0;
-    margin: 2rem;
+    margin: clamp(.5rem, 4%, 2rem);
 }
 

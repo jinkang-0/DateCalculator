@@ -46,6 +46,7 @@ const cl = document.getElementById('commandline');
 const errormsg = document.getElementById('error');
 const flairmsg = document.getElementById('flair');
 const timezoneDisplay = document.getElementById('timezone');
+const helpTable = document.getElementById('help');
 
 // vars
 const time = new Date();
@@ -102,9 +103,11 @@ cl.addEventListener('keydown', (e) => {
 function handleCommand(args, chaining=false) {
     const cmd = args.shift();
 
-    // if (cmd == "help")
-    //     handleHelpCommand(args);
-    if (!isNaN(cmd) && (cmd.startsWith('+') || cmd.startsWith('-')))
+    if (cmd == "help")
+        handleHelpCommand();
+    else if (cmd == "show")
+        handleShowCommand();
+    else if (!isNaN(cmd) && (cmd.startsWith('+') || cmd.startsWith('-')))
         handleAddCommand([cmd, ...args]);
     else if (['add', 'plus', 'append', '+'].includes(cmd))
         handleAddCommand(args);
@@ -128,9 +131,19 @@ function handleCommand(args, chaining=false) {
 
 
 // commands
-// function handleHelpCommand(args) {
-    
-// }
+function handleHelpCommand() {
+    const helpClone = helpTable.cloneNode(true);
+    helpClone.classList.add('shown');
+    display.appendChild(helpClone);
+    clearTempMsg();
+    scrollToBottom();
+}
+
+function handleShowCommand() {
+    insertText(parseTimeString(time), 'large');
+    clearTempMsg();
+    scrollToBottom();
+}
 
 function handleAddCommand(args) {
     // check command validity
@@ -155,7 +168,7 @@ function handleAddCommand(args) {
     } else {
         insertText(parseTimeString(time), 'result');
         clearTempMsg();
-        textContainer.scrollTop = textContainer.scrollHeight;
+        scrollToBottom();
     }
 }
 
@@ -174,7 +187,7 @@ function handleClear() {
     display.innerHTML = "";
     time.setTime(originalTime);
     insertText(parseTimeString(time), 'large');
-    showFlair('Reset to original time.');
+    showFlair('Cleared screen and reset to original time.');
 }
 
 function handleToday() {
@@ -252,7 +265,7 @@ function handleCompareCommand(args) {
         handleCommand(newArgs, true);
     } else {
         clearTempMsg();
-        textContainer.scrollTop = textContainer.scrollHeight;
+        scrollToBottom();
     }
 }
 
@@ -306,7 +319,7 @@ function hideFlair() {
 function showFlair(flair) {
     flairmsg.innerHTML = flair;
     flairmsg.classList.add('shown');
-    textContainer.scrollTop = textContainer.scrollHeight;
+    scrollToBottom();
 }
 
 function hideError() {
@@ -316,7 +329,7 @@ function hideError() {
 function showError(err) {
     errormsg.innerHTML = err;
     errormsg.classList.add('shown');
-    textContainer.scrollTop = textContainer.scrollHeight;
+    scrollToBottom();
 }
 
 function updateTime(unit, amt) {
@@ -428,4 +441,8 @@ function posMod(n, m) {
 
 function oppositePolarity(a, b) {
     return (a < 0 && b >= 0) || (a >= 0 && b < 0);
+}
+
+function scrollToBottom() {
+    textContainer.scrollTop = textContainer.scrollHeight;
 }
