@@ -8,9 +8,31 @@
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 </head>
 <body>
+    <p id="timezone"></p>
+
     <main>
         <article>
             <div id="display"></div>
+            <div id="help">
+                <code>help</code>
+                <p>Shows a list of commands.</p>
+                <code>+[amount] [unit]</code>
+                <p>Adds to the working time</p>
+                <code>-[amount] [unit]</code>
+                <p>Subtracts from the working time</p>
+                <code>diff [month] [day] [year]</code>
+                <code>diff [month] [day] [year] [hh:mm:ss]</code>
+                <code>diff [month] [day] [year] [hh:mm:ss] [am|pm]</code>
+                <p>Gets difference to another date</p>
+                <code>set [month] [day] [year]</code>
+                <code>set [month] [day] [year] [hh:mm:ss]</code>
+                <code>set [month] [day] [year] [hh:mm:ss] [am|pm]</code>
+                <p>Sets working time to another time</p>
+                <code>clear</code>
+                <p>Clears the screen and resets to original time</p>
+                <code>now</code>
+                <p>Sets working time to current time</p>
+            </div>
             <p id="flair">Flair</p>
             <p id="error">Error</p>
         </article>

@@ -103,6 +103,30 @@ article {
     margin: .2rem 0;
 }
 
+/* help table */
+#help {
+    display: none;
+}
+
+#help.shown {
+    display: flex;
+    flex-direction: column;
+}
+
+code {
+    font-family: 'Source Code Pro', monospace;
+    background: darkslategray;
+    display: inline-block;
+    width: fit-content;
+    padding: .1rem;
+    border-radius: .25rem;
+}
+
+#help > p {
+    margin-bottom: 1rem;
+}
+
+
 
 /* flair */
 #flair {
@@ -125,4 +149,13 @@ article {
     display: block;
 }
 
+
+
+/* timezone display */
+#timezone {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 2rem;
+}
 

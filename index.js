@@ -45,6 +45,7 @@ const display = document.getElementById('display');
 const cl = document.getElementById('commandline');
 const errormsg = document.getElementById('error');
 const flairmsg = document.getElementById('flair');
+const timezoneDisplay = document.getElementById('timezone');
 
 // vars
 const time = new Date();
@@ -54,6 +55,11 @@ var commandIndex = -1;
 
 // display current time
 insertText(parseTimeString(time), 'large');
+
+// display timezone
+const tzOffset = time.getTimezoneOffset();
+const utcOffset = Math.floor( tzOffset / -60 );
+timezoneDisplay.innerHTML = (utcOffset > 0)? `UTC+${utcOffset}` : `UTC${utcOffset}`;
 
 
 // detect command
@@ -71,6 +77,8 @@ cl.addEventListener('keydown', (e) => {
         // clear value
         cl.value = "";
     } else if (e.key == 'ArrowUp') {
+        e.preventDefault();
+
         if (commandIndex == 0)
             commandLog[0] = cl.value;
         if (commandIndex < commandLog.length - 1) {
@@ -94,6 +102,8 @@ cl.addEventListener('keydown', (e) => {
 function handleCommand(args, chaining=false) {
     const cmd = args.shift();
 
+    // if (cmd == "help")
+    //     handleHelpCommand(args);
     if (!isNaN(cmd) && (cmd.startsWith('+') || cmd.startsWith('-')))
         handleAddCommand([cmd, ...args]);
     else if (['add', 'plus', 'append', '+'].includes(cmd))
@@ -118,6 +128,10 @@ function handleCommand(args, chaining=false) {
 
 
 // commands
+// function handleHelpCommand(args) {
+    
+// }
+
 function handleAddCommand(args) {
     // check command validity
     if (!verifyAddOrSubtract(args)) {
@@ -266,7 +280,9 @@ function handleSetTime(args) {
     const argsUsed = (dateCase >= 3)? dateCase + 1 : dateCase + 2;
     const newArgs = args.slice(argsUsed);
     if (newArgs.length > 0) {
-        handleCommand(newArgs, true);
+        clearTempMsg();
+        showFlair("Updated time.");
+        handleCommand(newArgs, false);
     } else {
         clearTempMsg();
         showFlair("Updated time.");
@@ -324,8 +340,8 @@ function verifyAddOrSubtract(args) {
 
 function verifyDateArgs(args) {
     const case1 = (args.length >= 3) && (validMonths.includes(args[0].toLowerCase())) && (!isNaN(trimComma(args[1]))) && (!isNaN(trimComma(args[2])));
-    const case2 = case1 && (args.length >= 4) && (args[3].match(/^\d{2}:\d{2}(:\d{2})*$/));
-    const case3 = case1 && (args.length >= 4) && (args[3].match(/^\d{2}(:\d{2})*(:\d{2})*([aA][mM]|[pP][mM])$/));
+    const case2 = case1 && (args.length >= 4) && (args[3].match(/^\d{1,}:\d{1,}(:\d{1,})*$/));
+    const case3 = case1 && (args.length >= 4) && (args[3].match(/^\d{1,}(:\d{1,})*(:\d{1,})*([aA][mM]|[pP][mM])$/));
     const case4 = case2 && (args.length >= 5) && (["am", "pm"].includes(args[4].toLowerCase()));
     
     if (case4)
