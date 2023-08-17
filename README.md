@@ -20,6 +20,8 @@ Implemented Features:
     - `set [month] [day] [year] [hh:mm(:ss)][am|pm]`
 - Reset time to original time (`clr`)
 - Update time to current time (`now`)
+- Show current working time (`show`)
+- Display a list of commands (`help`)
 - Keeps track of logged commands (use up and down arrow to navigate)
 
 GitHub Page:
