@@ -18,6 +18,7 @@ Implemented Features:
     - `set [month] [day] [year]`
     - `set [month] [day] [year] [hh:mm(:ss)]`
     - `set [month] [day] [year] [hh:mm(:ss)][am|pm]`
+- Set original time to working time (`setorg`)
 - Reset time to original time (`clr`)
 - Update time to current time (`now`)
 - Show current working time (`show`)

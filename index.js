@@ -50,8 +50,8 @@ const helpTable = document.getElementById('help');
 
 // vars
 const time = new Date();
-const originalTime = time.getTime();
 const commandLog = [];
+var originalTime = time.getTime();
 var commandIndex = -1;
 
 // display current time
@@ -107,6 +107,8 @@ function handleCommand(args, chaining=false) {
         handleHelpCommand();
     else if (cmd == "show")
         handleShowCommand();
+    else if (cmd == "setorg")
+        handleSetOrgCommand();
     else if (!isNaN(cmd) && (cmd.startsWith('+') || cmd.startsWith('-')))
         handleAddCommand([cmd, ...args]);
     else if (['add', 'plus', 'append', '+'].includes(cmd))
@@ -142,6 +144,12 @@ function handleHelpCommand() {
 function handleShowCommand() {
     insertText(parseTimeString(time), 'large');
     clearTempMsg();
+    scrollToBottom();
+}
+
+function handleSetOrgCommand() {
+    originalTime = time.getTime();
+    showFlair("Set original time to working time.");
     scrollToBottom();
 }
 
