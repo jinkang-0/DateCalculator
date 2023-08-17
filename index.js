@@ -196,27 +196,36 @@ function handleCompareCommand(args) {
     // compute constants
     const larger = (msdiff > 0)? time : date;
     const smaller = (msdiff > 0)? date : time;
-    const lyear = larger.getFullYear();
-    const syear = smaller.getFullYear();
-    const lmonth = larger.getMonth();
-    const smonth = smaller.getMonth();
-    const lday = larger.getDate();
-    const sday = smaller.getDate();
-    const lhour = larger.getHours();
-    const shour = smaller.getHours();
-    const lmin = larger.getMinutes();
-    const smin = smaller.getMinutes();
-    const lsec = larger.getSeconds();
-    const ssec = smaller.getSeconds();
 
-    // compute difference
-    const dyear = (lmonth < smonth)? lyear - syear - 1 : lyear - syear;
-    const dmonth = (lday < sday)? posMod(lmonth - smonth, 12) - 1 : posMod(lmonth - smonth, 12);
-    const daysMod = daysInMonth[smonth];
-    const dday = (lhour < shour)? posMod(lday - sday, daysMod) - 1 : posMod(lday - sday, daysMod);
-    const dhour = (lmin < smin)? posMod(lhour - shour, 24) - 1 : posMod(lhour - shour, 24);
-    const dmin = (lsec < ssec)? posMod(lmin - smin, 60) - 1 : posMod(lmin - smin, 60);
-    const dsec = posMod(lsec - ssec, 60);
+    // compute diffs
+    var dyear = larger.getFullYear() - smaller.getFullYear();
+    var dmonth = larger.getMonth() - smaller.getMonth();
+    var dday = larger.getDate() - smaller.getDate();
+    var dhour = larger.getHours() - smaller.getHours();
+    var dmin = larger.getMinutes() - smaller.getMinutes();
+    var dsec = larger.getSeconds() - smaller.getSeconds();
+
+    // adjust negatives
+    if (dsec < 0) {
+        dmin -= 1;
+        dsec += 60;
+    }
+    if (dmin < 0) {
+        dhour -= 1;
+        dmin += 60;
+    }
+    if (dhour < 0) {
+        dday -= 1;
+        dhour += 24;
+    }
+    if (dday < 0) {
+        dmonth -= 1;
+        dday += daysInMonth[smaller.getMonth()];
+    }
+    if (dmonth < 0) {
+        dyear -= 1;
+        dmonth += 12;
+    }
 
     // return result text
     const plural = (num) => (Math.abs(num) != 1) ? 's' : '';
