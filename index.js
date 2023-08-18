@@ -56,6 +56,7 @@ var commandIndex = -1;
 
 // display current time
 insertText(parseTimeString(time), 'large');
+showFlair("Type help to see a list of commands");
 
 // display timezone
 const tzOffset = time.getTimezoneOffset();
@@ -255,7 +256,7 @@ function handleCompareCommand(args) {
     }
     if (dday < 0) {
         dmonth -= 1;
-        dday += daysInMonth[smaller.getMonth()];
+        dday += daysInMonth[posMod(larger.getMonth() - 1, 12)];
     }
     if (dmonth < 0) {
         dyear -= 1;
@@ -264,7 +265,7 @@ function handleCompareCommand(args) {
 
     // return result text
     const plural = (num) => (Math.abs(num) != 1) ? 's' : '';
-    insertText(`by ${dyear} year${plural(dyear)}, ${dmonth} month${plural(dmonth)}, ${dday} day${plural(dday)}, ${dhour} hour${plural(dhour)}, ${dmin} minute${plural(dmin)}, and ${dsec} second${plural(dsec)}`, 'result');
+    insertText(`by ${dyear} year${plural(dyear)}, ${dmonth} month${plural(dmonth)}, ${dday} day${plural(dday)}, ${dhour} hour${plural(dhour)}, ${dmin} minute${plural(dmin)}, and ${dsec} second${plural(dsec)} (${Math.abs(Math.floor(msdiff / 864000) / 100)} days)`, 'result');
 
     // parse other command chain
     const argsUsed = (dateCase >= 3)? dateCase + 1 : dateCase + 2;
@@ -349,6 +350,8 @@ function updateTime(unit, amt) {
         time.setHours(time.getHours() + amt);
     else if (unit == 'day')
         time.setDate(time.getDate() + amt);
+    else if (unit == 'week')
+        time.setDate(time.getDate() + 7 * amt);
     else if (unit == 'month')
         time.setMonth(time.getMonth() + amt);
     else if (unit == 'year')
