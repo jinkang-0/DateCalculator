@@ -2,9 +2,6 @@
 
 Do math operations on dates using text inputs.
 
-Planned features:
-- Command autofill
-
 Implemented Features:
 - Addition and subtraction
     - `+[amount] [unit]`
